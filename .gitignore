@@ -50,5 +50,7 @@ next-env.d.ts
 /prisma/dev.db
 /prisma/dev.db-journal
 
+# ignore assets folder
+/assets
 # zone identifier files from WSL
 *Zone.Identifier
