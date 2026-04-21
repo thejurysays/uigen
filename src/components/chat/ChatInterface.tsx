@@ -1,3 +1,22 @@
+/*
+ * Exercise: Anthropic Claude Code in Action course
+ *
+ * Prompts used:
+ *   1. (with screenshot of the empty state UI attached)
+ *      "use @assets/center_content.png  center this content vertically"
+ *   2. "Add a comment that this change is a part of learning Claude Code,
+ *      It is an excercise from Anthropic Claude Code in Action course.
+ *      Add to the comment the prompts used and the changes that Claude Code made."
+ *
+ * Changes made by Claude Code:
+ *   - Moved the empty-state UI (bot icon + heading + subtitle) out of MessageList
+ *     and into this component, rendered as a flex-1 div so it fills the available
+ *     height and is vertically centered via justify-center.
+ *   - ScrollArea is now only mounted when there are messages, which also fixes the
+ *     root cause: h-full inside a ScrollArea viewport sizes to content, not the
+ *     parent, so centering never worked there.
+ *   - Removed the empty-state branch from MessageList (it now only renders messages).
+ */
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -5,6 +24,7 @@ import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChat } from "@/lib/contexts/chat-context";
+import { Bot } from "lucide-react";
 
 export function ChatInterface() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -24,11 +44,21 @@ export function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full p-4 overflow-hidden">
-      <ScrollArea ref={scrollAreaRef} className="flex-1 overflow-hidden">
-        <div className="pr-4">
-          <MessageList messages={messages} isLoading={status === "streaming"} />
+      {messages.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
+          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-50 mb-4 shadow-sm">
+            <Bot className="h-7 w-7 text-blue-600" />
+          </div>
+          <p className="text-neutral-900 font-semibold text-lg mb-2">Start a conversation to generate React components</p>
+          <p className="text-neutral-500 text-sm max-w-sm">I can help you create buttons, forms, cards, and more</p>
         </div>
-      </ScrollArea>
+      ) : (
+        <ScrollArea ref={scrollAreaRef} className="flex-1 overflow-hidden">
+          <div className="pr-4">
+            <MessageList messages={messages} isLoading={status === "streaming"} />
+          </div>
+        </ScrollArea>
+      )}
       <div className="mt-4 flex-shrink-0">
         <MessageInput
           input={input}

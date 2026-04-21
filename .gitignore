@@ -52,3 +52,5 @@ next-env.d.ts
 
 # ignore assets folder
 /assets
+# zone identifier files from WSL
+*Zone.Identifier
