@@ -1,3 +1,31 @@
+/*
+ * Exercise: Anthropic Claude Code in Action course
+ *
+ * Prompts used:
+ *   1. (with screenshot of the str_replace_editor pill UI attached)
+ *      "Replace the 'str_replace_editor' text with a more user friendly message
+ *      of what this tool call is doing. For example, maybe state the file is
+ *      being created or edited, along with the name of the file being modified."
+ *   2. "I forgot to summarize the prompts that were requested in order to make
+ *      the more user friendly create file, update file etc.. The comment should
+ *      include 'Exercise: Anthropic Claude Code in Action course' the
+ *      'Prompts used' and 'Changes made by Claude Code'"
+ *
+ * Changes made by Claude Code:
+ *   - Added getToolLabel() helper that maps toolName + args to a friendly string:
+ *       create        → "Creating <filename>"
+ *       str_replace / insert → "Editing <filename>"
+ *       view          → "Viewing <filename>"
+ *       file_manager  → "Managing files"
+ *   - Replaced both {tool.toolName} spans in the tool-invocation render branch
+ *     with {getToolLabel(tool.toolName, tool.args)} so the pill reads
+ *     e.g. "Creating Card.tsx" instead of "str_replace_editor"
+ *   - Updated MessageList tests: removed the empty-state test (moved to
+ *     ChatInterface) and updated the tool-invocation test to assert the new
+ *     friendly label ("Creating Card.tsx") rather than the raw tool name
+ *   - Updated ChatInterface tests: added messages to mocks in three tests that
+ *     look for data-testid="message-list", which only renders when messages exist
+ */
 "use client";
 
 import { Message } from "ai";
@@ -8,6 +36,23 @@ import { MarkdownRenderer } from "./MarkdownRenderer";
 interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
+}
+
+function getToolLabel(toolName: string, args: Record<string, unknown>): string {
+  if (toolName === "str_replace_editor") {
+    const fileName = typeof args.path === "string" ? args.path.split("/").pop() : "";
+    switch (args.command) {
+      case "create":      return `Creating ${fileName}`;
+      case "str_replace":
+      case "insert":      return `Editing ${fileName}`;
+      case "view":        return `Viewing ${fileName}`;
+      default:            return `Updating ${fileName}`;
+    }
+  }
+  if (toolName === "file_manager") {
+    return "Managing files";
+  }
+  return toolName;
 }
 
 export function MessageList({ messages, isLoading }: MessageListProps) {
@@ -69,12 +114,12 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                                 {tool.state === "result" && tool.result ? (
                                   <>
                                     <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                    <span className="text-neutral-700">{tool.toolName}</span>
+                                    <span className="text-neutral-700">{getToolLabel(tool.toolName, tool.args as Record<string, unknown>)}</span>
                                   </>
                                 ) : (
                                   <>
                                     <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
-                                    <span className="text-neutral-700">{tool.toolName}</span>
+                                    <span className="text-neutral-700">{getToolLabel(tool.toolName, tool.args as Record<string, unknown>)}</span>
                                   </>
                                 )}
                               </div>
